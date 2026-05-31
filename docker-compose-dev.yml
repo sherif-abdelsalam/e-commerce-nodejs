@@ -1,0 +1,5 @@
+services:
+  node-app:
+    environment:
+      - NODE_ENV=development
+      

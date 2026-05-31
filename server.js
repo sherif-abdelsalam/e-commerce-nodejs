@@ -28,11 +28,20 @@ app.use(cookieParser());
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date()
+  })
+})
+
 app.use("/categories", categoryRoute);
 app.use("/products", productRoute);
 app.use("/payment", paymentRoutes);
 app.use("/admin", adminRoute);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3004;
 
 
 app.use("/api/v1/users", userRouter);
@@ -49,3 +58,4 @@ app.use(globalErrorHandler);
 app.listen(PORT, () => {
     console.log(`Server up and running on port ${PORT}`);
 });
+
