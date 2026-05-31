@@ -27,7 +27,5 @@ jobs:
       # 3 - Login to ECR
       - name: Login to ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-
+        uses: aws-actions/amazon-ecr-login@v2
 
