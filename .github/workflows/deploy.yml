@@ -29,3 +29,38 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+            # 4 - Build & push image
+      - name: Build and push Docker image
+        env:
+          IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPO_NAME }}:latest
+        run: |
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+      # 5 - Trigger instance refresh
+      - name: Trigger instance refresh
+        run: |
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name ${{ vars.AWS_ASG_NAME }} \
+            --region ${{ vars.AWS_REGION }} \
+            --preferences '{"MinHealthyPercentage": 50, "InstanceWarmup": 60}'
+
+      # 6 - Wait for refresh to complete
+      - name: Wait for instance refresh
+        run: |
+          while true; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name ${{ vars.AWS_ASG_NAME }} \
+              --region ${{ vars.AWS_REGION }} \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+            echo "Status: $STATUS"
+            if [ "$STATUS" == "Successful" ]; then
+              echo "Deployment complete ✅"
+              break
+            elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ]; then
+              echo "Deployment failed ❌"
+              exit 1
+            fi
+            sleep 15
+          done  
