@@ -32,6 +32,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
+    message: 'Server is healthy',
     uptime: process.uptime(),
     timestamp: new Date()
   })
